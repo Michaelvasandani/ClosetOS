@@ -7,4 +7,4 @@
  * llm) are added in later issues and re-exported from here.
  */
 
-export {};
+export * from "./model.js";
