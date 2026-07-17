@@ -7,4 +7,5 @@
  * llm) are added in later issues and re-exported from here.
  */
 
+export * from "./availability.js";
 export * from "./model.js";
