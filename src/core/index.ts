@@ -9,5 +9,7 @@
 
 export * from "./availability.js";
 export * from "./constraints.js";
+export * from "./llm.js";
 export * from "./model.js";
+export * from "./recommend.js";
 export * from "./store.js";
