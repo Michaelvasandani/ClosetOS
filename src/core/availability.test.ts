@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   describeState,
   isAvailable,
+  pendingLaundry,
   setCleanliness,
   setCondition,
   setLocation,
@@ -78,6 +79,20 @@ describe("transition helpers", () => {
   it("preserves every other field", () => {
     const moved = setLocation(availableItem, "stored");
     expect(moved).toEqual({ ...availableItem, location: "stored" });
+  });
+});
+
+describe("pendingLaundry", () => {
+  const dirty = setCleanliness(availableItem, "dirty");
+  const inLaundry = { ...setCleanliness(availableItem, "in-laundry"), id: "tee-01" };
+
+  it("returns every item that is not clean (dirty or in-laundry)", () => {
+    const pending = pendingLaundry([availableItem, dirty, inLaundry]);
+    expect(pending).toEqual([dirty, inLaundry]);
+  });
+
+  it("is empty when everything is clean", () => {
+    expect(pendingLaundry([availableItem])).toEqual([]);
   });
 });
 

@@ -40,6 +40,15 @@ export function setCondition(item: Item, value: Condition): Item {
 }
 
 /**
+ * Items whose cleanliness is off "clean" (dirty or in-laundry) — the set
+ * `closet clean all` resets. A domain query over the laundry axis, so it lives
+ * beside the cleanliness predicates rather than in the CLI shell (ADR-0002).
+ */
+export function pendingLaundry(items: readonly Item[]): Item[] {
+  return items.filter((item) => item.cleanliness !== "clean");
+}
+
+/**
  * A short human summary of the three state axes for `list`, e.g.
  * `"dirty · with-me · ok"` — cleanliness, location, then condition.
  */
