@@ -1,0 +1,15 @@
+id: denim-jacket-01
+name: Denim jacket
+category: outerwear
+colors:
+  - blue
+formality:
+  - casual
+seasons:
+  - spring
+  - fall
+cleanliness: clean
+location: with-me
+condition: ok
+wear_count: 0
+last_worn: null

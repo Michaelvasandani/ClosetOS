@@ -1,0 +1,15 @@
+id: navy-tee-01
+name: Navy crew tee
+category: top
+colors:
+  - navy
+formality:
+  - casual
+seasons:
+  - spring
+  - summer
+cleanliness: clean
+location: with-me
+condition: ok
+wear_count: 0
+last_worn: null

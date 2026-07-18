@@ -1,0 +1,18 @@
+id: charcoal-trousers-01
+name: Charcoal wool trousers
+category: bottom
+brand: Uniqlo
+colors:
+  - charcoal
+formality:
+  - business-casual
+  - smart-casual
+seasons:
+  - spring
+  - fall
+  - winter
+cleanliness: clean
+location: with-me
+condition: ok
+wear_count: 0
+last_worn: null

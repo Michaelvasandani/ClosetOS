@@ -1,0 +1,19 @@
+id: dark-jeans-01
+name: Dark wash jeans
+category: bottom
+brand: Levi's
+colors:
+  - indigo
+formality:
+  - casual
+  - smart-casual
+seasons:
+  - spring
+  - summer
+  - fall
+  - winter
+cleanliness: clean
+location: with-me
+condition: ok
+wear_count: 0
+last_worn: null

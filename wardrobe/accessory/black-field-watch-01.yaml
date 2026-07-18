@@ -1,0 +1,13 @@
+id: black-field-watch-01
+name: Black field watch
+category: accessory
+colors:
+  - black
+formality:
+  - smart-casual
+  - casual
+cleanliness: clean
+location: with-me
+condition: ok
+wear_count: 0
+last_worn: null

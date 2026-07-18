@@ -1,0 +1,19 @@
+id: white-sneakers-01
+name: White leather sneakers
+category: shoes
+brand: Common Projects
+colors:
+  - white
+formality:
+  - smart-casual
+  - casual
+seasons:
+  - spring
+  - summer
+  - fall
+cleanliness: clean
+location: with-me
+condition: ok
+wear_count: 0
+last_worn: null
+notes: Comfortable but scuff easily on long-walking days.

@@ -1,0 +1,11 @@
+# Hand-maintained soft preferences (Rung 0). The recommender reads these as
+# advisory signals only — never hard constraints. v1 does not write here
+# automatically; edit by hand as you learn what you actually like.
+weather:
+  - "Avoid the grey knit polo (grey-knit-polo-01) on hot days / above ~78F unless specifically requested — it runs warm."
+comfort:
+  - "White sneakers (white-sneakers-01) get uncomfortable on long-walking days; prefer them for shorter days."
+style:
+  preferred_office_bottoms:
+    - charcoal-trousers-01
+    - dark-jeans-01

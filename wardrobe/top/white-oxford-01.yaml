@@ -1,0 +1,20 @@
+id: white-oxford-01
+name: White oxford button-down
+category: top
+brand: Uniqlo
+colors:
+  - white
+formality:
+  - business-casual
+  - smart-casual
+seasons:
+  - spring
+  - summer
+  - fall
+  - winter
+cleanliness: clean
+location: with-me
+condition: ok
+wear_count: 0
+last_worn: null
+notes: Crisp, works under a blazer or on its own.

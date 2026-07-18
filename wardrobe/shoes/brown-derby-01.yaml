@@ -1,0 +1,17 @@
+id: brown-derby-01
+name: Brown leather derbies
+category: shoes
+colors:
+  - brown
+formality:
+  - business-casual
+  - smart-casual
+seasons:
+  - spring
+  - fall
+  - winter
+cleanliness: clean
+location: with-me
+condition: ok
+wear_count: 0
+last_worn: null

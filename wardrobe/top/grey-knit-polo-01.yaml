@@ -1,0 +1,18 @@
+id: grey-knit-polo-01
+name: Grey knit polo
+category: top
+colors:
+  - grey
+formality:
+  - smart-casual
+  - casual
+seasons:
+  - spring
+  - summer
+  - fall
+cleanliness: clean
+location: with-me
+condition: ok
+wear_count: 0
+last_worn: null
+notes: Runs warm; less ideal on hot days.

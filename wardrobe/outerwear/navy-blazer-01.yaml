@@ -1,0 +1,18 @@
+id: navy-blazer-01
+name: Navy wool blazer
+category: outerwear
+colors:
+  - navy
+formality:
+  - business-casual
+  - smart-casual
+seasons:
+  - spring
+  - fall
+  - winter
+cleanliness: clean
+location: with-me
+condition: ok
+wear_count: 0
+last_worn: null
+notes: Dresses up an oxford for the office.

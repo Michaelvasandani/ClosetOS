@@ -1,0 +1,15 @@
+id: brown-leather-belt-01
+name: Brown leather belt
+category: accessory
+colors:
+  - brown
+formality:
+  - business-casual
+  - smart-casual
+  - casual
+cleanliness: clean
+location: with-me
+condition: ok
+wear_count: 0
+last_worn: null
+notes: Pairs with the brown derbies.
