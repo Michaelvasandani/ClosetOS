@@ -4,7 +4,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Item, Wear } from "./model.js";
-import { MalformedFileError, type Store, createStore, findItem, slugId } from "./store.js";
+import {
+  MalformedFileError,
+  type Store,
+  createStore,
+  draftItem,
+  findItem,
+  parseList,
+  slugId,
+} from "./store.js";
 
 /** A fully-populated Item, exercising every optional field on the round trip. */
 const fullItem: Item = {
@@ -76,6 +84,12 @@ describe("store", () => {
     it("writes to wardrobe/<category>/<id>.yaml", () => {
       store.saveItem(fullItem);
       expect(existsSync(join(root, "wardrobe", "top", "polo-grey-knit-01.yaml"))).toBe(true);
+    });
+
+    it("returns the written path, relative to the store root", () => {
+      const path = store.saveItem(fullItem);
+      expect(path).toBe(join("wardrobe", "top", "polo-grey-knit-01.yaml"));
+      expect(existsSync(join(root, path))).toBe(true);
     });
 
     it("serialises with snake_case keys on disk", () => {
@@ -274,5 +288,76 @@ describe("findItem", () => {
   it("returns an empty array when nothing matches", () => {
     const result = findItem("umbrella", items);
     expect(result).toEqual([]);
+  });
+});
+
+describe("parseList", () => {
+  it("splits a comma-separated string into trimmed values", () => {
+    expect(parseList("grey, navy , black")).toEqual(["grey", "navy", "black"]);
+  });
+
+  it("drops empty entries and surrounding whitespace", () => {
+    expect(parseList(" smart-casual ,, business-casual, ")).toEqual([
+      "smart-casual",
+      "business-casual",
+    ]);
+  });
+
+  it("returns an empty array for an empty or whitespace-only string", () => {
+    expect(parseList("")).toEqual([]);
+    expect(parseList("   ")).toEqual([]);
+  });
+});
+
+describe("draftItem", () => {
+  it("applies the new-Item defaults and a generated slug id", () => {
+    const item = draftItem(
+      { name: "Grey knit polo", category: "top", colors: ["grey"], formality: ["smart-casual"] },
+      [],
+    );
+    expect(item).toEqual({
+      id: "grey-knit-polo-01",
+      name: "Grey knit polo",
+      category: "top",
+      colors: ["grey"],
+      formality: ["smart-casual"],
+      cleanliness: "clean",
+      location: "with-me",
+      condition: "ok",
+      wearCount: 0,
+      lastWorn: null,
+    });
+  });
+
+  it("includes optional fields only when provided", () => {
+    const item = draftItem(
+      {
+        name: "Grey knit polo",
+        category: "top",
+        colors: ["grey"],
+        formality: ["smart-casual"],
+        brand: "Uniqlo",
+        seasons: ["spring", "fall"],
+        notes: "runs warm",
+      },
+      [],
+    );
+    expect(item.brand).toBe("Uniqlo");
+    expect(item.seasons).toEqual(["spring", "fall"]);
+    expect(item.notes).toBe("runs warm");
+  });
+
+  it("omits optional keys entirely when absent (not set to undefined)", () => {
+    const item = draftItem({ name: "Tee", category: "top", colors: [], formality: [] }, []);
+    expect("brand" in item).toBe(false);
+    expect("seasons" in item).toBe(false);
+    expect("notes" in item).toBe(false);
+  });
+
+  it("generates a unique id against existing ids", () => {
+    const item = draftItem({ name: "Grey knit polo", category: "top", colors: [], formality: [] }, [
+      "grey-knit-polo-01",
+    ]);
+    expect(item.id).toBe("grey-knit-polo-02");
   });
 });

@@ -24,6 +24,7 @@ import {
   type IsoDate,
   type Item,
   type Ratings,
+  type Season,
   type Wear,
   isCategory,
   isCleanliness,
@@ -47,8 +48,12 @@ export class MalformedFileError extends Error {
 export interface Store {
   /** Read and validate every Item YAML under `wardrobe/`. Throws on a malformed file. */
   loadItems(): Item[];
-  /** Write `item` to `wardrobe/<category>/<id>.yaml` (creating the dir). */
-  saveItem(item: Item): void;
+  /**
+   * Write `item` to `wardrobe/<category>/<id>.yaml` (creating the dir) and return
+   * that path relative to the store root, so a caller can report where it landed
+   * without re-deriving the layout the Store owns.
+   */
+  saveItem(item: Item): string;
   /**
    * Persist `wear` to `outfits/wears/<date>-<NN>.yaml`. Owns the per-day
    * sequence number: it scans existing files for `wear.date`, assigns the next
@@ -266,10 +271,12 @@ export function createStore(root: string): Store {
       return yamlFilesUnder(wardrobeDir).map((path) => recordToItem(parseFile(path), path));
     },
 
-    saveItem(item: Item): void {
-      const dir = join(wardrobeDir, item.category);
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(join(dir, `${item.id}.yaml`), toYaml(itemToRecord(item)));
+    saveItem(item: Item): string {
+      const relPath = join("wardrobe", item.category, `${item.id}.yaml`);
+      const absPath = join(root, relPath);
+      mkdirSync(join(wardrobeDir, item.category), { recursive: true });
+      writeFileSync(absPath, toYaml(itemToRecord(item)));
+      return relPath;
     },
 
     saveWear(wear: Wear): Wear {
@@ -314,6 +321,54 @@ function slugify(text: string): string {
     .replace(/['’]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+/** Split a comma-separated tag string into trimmed, non-empty values. */
+export function parseList(raw: string): string[] {
+  return raw
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
+/**
+ * The already-validated fields collected for a new Item — everything the user
+ * supplies. State, wear history, and id are not here: `draftItem` fills those
+ * from the new-Item defaults and generates the slug.
+ */
+export interface NewItemFields {
+  name: string;
+  category: Category;
+  colors: string[];
+  formality: string[];
+  brand?: string;
+  seasons?: Season[];
+  notes?: string;
+}
+
+/**
+ * Assemble a brand-new Item from user-supplied `fields`: apply the fresh-Item
+ * defaults (`clean` · `with-me` · `ok`, never worn) and a unique slug id built
+ * from the name (see `slugId`). Optional fields are set only when present, so
+ * they round-trip to absent rather than an explicit `undefined`.
+ */
+export function draftItem(fields: NewItemFields, existingIds: readonly string[]): Item {
+  const item: Item = {
+    id: slugId(fields.name, fields.category, existingIds),
+    name: fields.name,
+    category: fields.category,
+    colors: fields.colors,
+    formality: fields.formality,
+    cleanliness: "clean",
+    location: "with-me",
+    condition: "ok",
+    wearCount: 0,
+    lastWorn: null,
+  };
+  if (fields.brand !== undefined) item.brand = fields.brand;
+  if (fields.seasons !== undefined) item.seasons = fields.seasons;
+  if (fields.notes !== undefined) item.notes = fields.notes;
+  return item;
 }
 
 /**

@@ -5,6 +5,7 @@ import {
   setCleanliness,
   setCondition,
   setLocation,
+  unavailableReasons,
 } from "./availability.js";
 import { CLEANLINESS_VALUES, CONDITION_VALUES, type Item, LOCATION_VALUES } from "./model.js";
 
@@ -88,5 +89,31 @@ describe("describeState", () => {
   it("reflects a non-available state", () => {
     const item = setCondition(setCleanliness(availableItem, "dirty"), "needs-repair");
     expect(describeState(item)).toBe("dirty · with-me · needs-repair");
+  });
+});
+
+describe("unavailableReasons", () => {
+  it("is empty for an available Item", () => {
+    expect(unavailableReasons(availableItem)).toEqual([]);
+  });
+
+  it("reports the single off-axis value that blocks availability", () => {
+    expect(unavailableReasons(setCleanliness(availableItem, "dirty"))).toEqual(["dirty"]);
+    expect(unavailableReasons(setLocation(availableItem, "packed"))).toEqual(["packed"]);
+    expect(unavailableReasons(setCondition(availableItem, "needs-repair"))).toEqual([
+      "needs-repair",
+    ]);
+  });
+
+  it("reports every blocking axis in cleanliness · location · condition order", () => {
+    const item = setCondition(
+      setLocation(setCleanliness(availableItem, "in-laundry"), "loaned-out"),
+      "needs-repair",
+    );
+    expect(unavailableReasons(item)).toEqual(["in-laundry", "loaned-out", "needs-repair"]);
+  });
+
+  it("is empty exactly when isAvailable is true", () => {
+    expect(unavailableReasons(availableItem).length === 0).toBe(isAvailable(availableItem));
   });
 });

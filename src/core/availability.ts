@@ -17,10 +17,11 @@ import type { Cleanliness, Condition, Item, Location } from "./model.js";
  * True iff the Item is wearable right now: clean, at hand, and sound. Any one
  * axis being off the "ready" value blocks availability independently — there is
  * exactly one available state (`clean` · `with-me` · `ok`) out of the 24 the
- * three axes can form.
+ * three axes can form. Defined via `unavailableReasons` so the "ready" values
+ * live in one place.
  */
 export function isAvailable(item: Item): boolean {
-  return item.cleanliness === "clean" && item.location === "with-me" && item.condition === "ok";
+  return unavailableReasons(item).length === 0;
 }
 
 /** Return a copy of `item` with its cleanliness set to `value`. */
@@ -44,4 +45,18 @@ export function setCondition(item: Item, value: Condition): Item {
  */
 export function describeState(item: Item): string {
   return `${item.cleanliness} · ${item.location} · ${item.condition}`;
+}
+
+/**
+ * The off-"ready" axis values that block this Item from being wearable now, in
+ * cleanliness · location · condition order (e.g. `["dirty", "packed"]`). Empty
+ * for a wearable Item — the single source of truth for the "ready" values, which
+ * `isAvailable` and `list` both build on to flag *why* an Item is out.
+ */
+export function unavailableReasons(item: Item): string[] {
+  const reasons: string[] = [];
+  if (item.cleanliness !== "clean") reasons.push(item.cleanliness);
+  if (item.location !== "with-me") reasons.push(item.location);
+  if (item.condition !== "ok") reasons.push(item.condition);
+  return reasons;
 }
