@@ -136,6 +136,16 @@ export interface Wear {
 
 // --- Recommendation ---------------------------------------------------------
 
+export const OUTFIT_LABELS = ["best", "comfort", "experimental"] as const;
+
+/**
+ * The three labels every Recommendation carries, in presentation order. The one
+ * canonical source for the label set and its ordering — the recommender's schema,
+ * the CLI's numbered display, and the session file all derive from this so they
+ * can never disagree on which labels exist or what order they come in.
+ */
+export type OutfitLabel = (typeof OUTFIT_LABELS)[number];
+
 /** One labeled candidate in a Recommendation: an Outfit and its one-line rationale. */
 export interface RecommendedOutfit {
   outfit: Outfit;

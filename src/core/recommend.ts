@@ -20,8 +20,16 @@ import { assembleCandidates, availableByCategory, itemsById } from "./constraint
 import type { OutfitRequest } from "./constraints.js";
 import { MODELS } from "./llm.js";
 import type { LlmClient } from "./llm.js";
-import { REQUIRED_SLOTS } from "./model.js";
-import type { Item, ItemId, Outfit, Recommendation, RecommendedOutfit, Wear } from "./model.js";
+import { OUTFIT_LABELS, REQUIRED_SLOTS } from "./model.js";
+import type {
+  Item,
+  ItemId,
+  Outfit,
+  OutfitLabel,
+  Recommendation,
+  RecommendedOutfit,
+  Wear,
+} from "./model.js";
 
 /**
  * The reply to one outfit request. Either a full Recommendation, or a structured
@@ -48,10 +56,6 @@ export class LlmRecommendationError extends Error {
 /** How many recent Wears to show the model as soft signal. */
 const RECENT_WEARS = 5;
 
-/** The three labels the model must fill, in presentation order. */
-const LABELS = ["best", "comfort", "experimental"] as const;
-type Label = (typeof LABELS)[number];
-
 /** JSON schema for one labeled pick — the Outfit slots plus a one-line rationale. */
 const PICK_SCHEMA: Record<string, unknown> = {
   type: "object",
@@ -76,7 +80,7 @@ const PICK_SCHEMA: Record<string, unknown> = {
 export const RECOMMENDATION_SCHEMA: Record<string, unknown> = {
   type: "object",
   additionalProperties: false,
-  required: [...LABELS],
+  required: [...OUTFIT_LABELS],
   properties: {
     best: PICK_SCHEMA,
     comfort: PICK_SCHEMA,
@@ -233,7 +237,7 @@ function requireStringArray(value: unknown, field: string): string[] {
 }
 
 /** Parse and structurally validate one raw pick into an Outfit + rationale. */
-function parsePick(raw: unknown, label: Label): { outfit: Outfit; rationale: string } {
+function parsePick(raw: unknown, label: OutfitLabel): { outfit: Outfit; rationale: string } {
   if (!isRecord(raw)) {
     throw new LlmRecommendationError(`\`${label}\` is missing or not an object`);
   }
@@ -269,7 +273,7 @@ function parseRecommendation(raw: unknown, candidates: Outfit[]): Recommendation
   }
   const byKey = new Map(candidates.map((outfit) => [outfitKey(outfit), outfit]));
 
-  const resolve = (label: Label): RecommendedOutfit => {
+  const resolve = (label: OutfitLabel): RecommendedOutfit => {
     const { outfit, rationale } = parsePick(raw[label], label);
     const matched = byKey.get(outfitKey(outfit));
     if (!matched) {

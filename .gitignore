@@ -2,3 +2,6 @@ node_modules/
 dist/
 .env
 *.log
+
+# Transient `outfit` → `wore` session state (issue 09), not durable wardrobe data.
+.scratch/.last-recommendation.json
