@@ -15,17 +15,11 @@ import type { Command } from "commander";
 import { parseRequest } from "../core/constraints.js";
 import { createLlmClient } from "../core/llm.js";
 import { OUTFIT_LABELS } from "../core/model.js";
-import type { Item, ItemId, Outfit, OutfitLabel, Recommendation } from "../core/model.js";
+import type { Item, ItemId, Outfit, Recommendation } from "../core/model.js";
 import { recommend } from "../core/recommend.js";
 import { createStore } from "../core/store.js";
+import { LABEL_HEADINGS } from "./labels.js";
 import { saveSession, sessionFromRecommendation } from "./session.js";
-
-/** Presentation heading per label; order comes from OUTFIT_LABELS, not this map. */
-const HEADINGS: Record<OutfitLabel, string> = {
-  best: "Best",
-  comfort: "Comfort-first",
-  experimental: "Experimental",
-};
 
 /** Resolve an id to its item name, falling back to the raw id if unknown. */
 function nameOf(id: ItemId, byId: Map<ItemId, Item>): string {
@@ -61,9 +55,10 @@ export function formatRecommendation(
   const byId = new Map<ItemId, Item>(items.map((item) => [item.id, item]));
   const blocks = OUTFIT_LABELS.map((label, index) => {
     const { outfit, rationale } = recommendation[label];
-    return [`  ${index + 1}. ${HEADINGS[label]} — ${rationale}`, ...outfitLines(outfit, byId)].join(
-      "\n",
-    );
+    return [
+      `  ${index + 1}. ${LABEL_HEADINGS[label]} — ${rationale}`,
+      ...outfitLines(outfit, byId),
+    ].join("\n");
   });
   return blocks.join("\n\n");
 }

@@ -207,6 +207,30 @@ describe("store", () => {
     });
   });
 
+  describe("updateWear", () => {
+    it("overwrites the existing Wear file in place, keeping its id and count", () => {
+      const saved = store.saveWear({ ...sampleWear, ratings: {}, feedback: [] });
+      store.updateWear({ ...saved, ratings: { overall: 9 }, feedback: ["great"] });
+      const wears = store.loadWears();
+      expect(wears).toHaveLength(1);
+      expect(wears[0]?.id).toBe(saved.id);
+      expect(wears[0]?.ratings).toEqual({ overall: 9 });
+      expect(wears[0]?.feedback).toEqual(["great"]);
+    });
+
+    it("does not allocate a new sequence number (unlike saveWear)", () => {
+      const saved = store.saveWear(sampleWear);
+      store.updateWear({ ...saved, ratings: { overall: 10 } });
+      expect(existsSync(join(root, "outfits", "wears", "2026-07-17-02.yaml"))).toBe(false);
+    });
+
+    it("throws when there is no Wear file to update", () => {
+      expect(() => store.updateWear({ ...sampleWear, id: "wear-2026-07-17-01" })).toThrow(
+        /wear-2026-07-17-01/,
+      );
+    });
+  });
+
   describe("loadLearnedPreferences", () => {
     it("returns undefined when preferences/learned.yaml is absent", () => {
       expect(store.loadLearnedPreferences()).toBeUndefined();

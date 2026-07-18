@@ -34,6 +34,12 @@ export interface SessionOutfit {
 export interface Session {
   request: Pick<OutfitRequest, "occasion" | "weather" | "notes">;
   outfits: SessionOutfit[];
+  /**
+   * The id of the Wear created by the last `closet wore`, awaiting a `rate`.
+   * Absent until `wore` runs — this is how a Wear is marked "pending ratings"
+   * (issue 10) so `rate` knows which Wear to attach the score to.
+   */
+  pendingWearId?: string;
 }
 
 /** The single gitignored session file, rooted at `root`. */

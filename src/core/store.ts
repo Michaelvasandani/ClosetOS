@@ -60,6 +60,12 @@ export interface Store {
    * `NN`, sets the canonical id `wear-<date>-<NN>`, and returns the stored Wear.
    */
   saveWear(wear: Wear): Wear;
+  /**
+   * Overwrite the existing Wear file identified by `wear.id`, preserving its
+   * filename and id (unlike `saveWear`, which allocates a new per-day sequence).
+   * This is the in-place edit `rate` needs. Throws if no such file exists.
+   */
+  updateWear(wear: Wear): void;
   /** Read and validate every `outfits/wears/*.yaml`. Throws on a malformed file. */
   loadWears(): Wear[];
   /**
@@ -286,6 +292,15 @@ export function createStore(root: string): Store {
       const stored: Wear = { ...wear, id: `wear-${suffix}` };
       writeFileSync(join(wearsDir, `${suffix}.yaml`), toYaml(wearToRecord(stored)));
       return stored;
+    },
+
+    updateWear(wear: Wear): void {
+      // The id owns the filename: `wear-<date>-<NN>` → `<date>-<NN>.yaml`.
+      const path = join(wearsDir, `${wear.id.replace(/^wear-/, "")}.yaml`);
+      if (!existsSync(path)) {
+        throw new Error(`No Wear ${wear.id} to update — ${path} does not exist.`);
+      }
+      writeFileSync(path, toYaml(wearToRecord(wear)));
     },
 
     loadWears(): Wear[] {
