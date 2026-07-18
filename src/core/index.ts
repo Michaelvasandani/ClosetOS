@@ -8,5 +8,6 @@
  */
 
 export * from "./availability.js";
+export * from "./constraints.js";
 export * from "./model.js";
 export * from "./store.js";
