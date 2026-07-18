@@ -16,7 +16,12 @@
  * `ANTHROPIC_API_KEY` env var (resolved by the SDK when no key is passed).
  */
 
-import Anthropic from "@anthropic-ai/sdk";
+import Anthropic, {
+  APIConnectionError,
+  APIError,
+  AuthenticationError,
+  RateLimitError,
+} from "@anthropic-ai/sdk";
 
 /** The Claude model per task tier (spec.md "Models"). */
 export const MODELS = {
@@ -80,4 +85,61 @@ export function createLlmClient(apiKey?: string): LlmClient {
       return JSON.parse(text) as unknown;
     },
   };
+}
+
+/**
+ * A recognized LLM/transport failure, classified from a raw SDK error into the
+ * few cases a caller can act on (issue 12). The CLI shell owns how each is worded;
+ * this seam only owns the SDK vocabulary — matching ADR-0002's "core keeps
+ * throwing, the shell decides presentation" and this module's "only place that
+ * talks to the LLM" role. `detail` is the short human message the API returned
+ * (e.g. `invalid x-api-key`), never a stack.
+ */
+export type LlmFailure =
+  | { kind: "missing-key" }
+  | { kind: "auth"; status: number; detail: string }
+  | { kind: "rate-limit"; status: number }
+  | { kind: "connection"; detail: string }
+  | { kind: "api"; status: number | undefined; detail: string };
+
+/** The short, human-facing message the API returned, falling back to the SDK's own. */
+function apiDetail(error: APIError): string {
+  const body = error.error as { error?: { message?: string } } | undefined;
+  return body?.error?.message ?? error.message;
+}
+
+/**
+ * The SDK throws a *plain* `Error` ("Could not resolve authentication method…")
+ * when no key is configured — it never reaches the wire, so it isn't an
+ * `APIError`. We only read it as a missing key when the env var is genuinely
+ * absent, so an unrelated `Error` (a real bug) still surfaces as itself.
+ */
+function isAuthResolutionError(error: unknown): boolean {
+  return error instanceof Error && /resolve authentication/i.test(error.message);
+}
+
+/**
+ * Classify an error thrown from the LLM seam into an actionable `LlmFailure`, or
+ * `null` when it isn't an LLM/transport failure (so the caller re-throws and real
+ * bugs keep their stack). `apiKeyPresent` — whether `ANTHROPIC_API_KEY` is set —
+ * is passed in rather than read here so this stays a pure, testable classifier;
+ * it distinguishes an unset key from a rejected one (401).
+ */
+export function classifyLlmError(error: unknown, apiKeyPresent: boolean): LlmFailure | null {
+  if (error instanceof AuthenticationError) {
+    return { kind: "auth", status: error.status, detail: apiDetail(error) };
+  }
+  if (error instanceof RateLimitError) {
+    return { kind: "rate-limit", status: error.status };
+  }
+  if (error instanceof APIConnectionError) {
+    return { kind: "connection", detail: error.message };
+  }
+  if (error instanceof APIError) {
+    return { kind: "api", status: error.status, detail: apiDetail(error) };
+  }
+  if (!apiKeyPresent && isAuthResolutionError(error)) {
+    return { kind: "missing-key" };
+  }
+  return null;
 }

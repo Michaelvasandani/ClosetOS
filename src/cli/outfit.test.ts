@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import type { LlmFailure } from "../core/llm.js";
 import type { Item, Recommendation } from "../core/model.js";
-import { formatRecommendation } from "./outfit.js";
+import { formatLlmFailure, formatRecommendation } from "./outfit.js";
 
 /** Build an Item with just the fields the presentation reads. */
 function item(id: string, name: string, category: Item["category"]): Item {
@@ -98,5 +99,55 @@ describe("formatRecommendation", () => {
       },
     };
     expect(formatRecommendation(withGhost, items)).toContain("ghost-99");
+  });
+});
+
+describe("formatLlmFailure", () => {
+  /** No failure message should ever be multi-line — a stack trace is exactly what we're replacing. */
+  function assertOneActionableLine(message: string) {
+    expect(message).not.toContain("\n");
+    expect(message.toLowerCase()).not.toContain("node_modules");
+  }
+
+  it("points a missing key at ANTHROPIC_API_KEY", () => {
+    const message = formatLlmFailure({ kind: "missing-key" });
+    expect(message).toContain("ANTHROPIC_API_KEY");
+    assertOneActionableLine(message);
+  });
+
+  it("surfaces the 401 status and the SDK's short detail for a rejected key", () => {
+    const failure: LlmFailure = { kind: "auth", status: 401, detail: "invalid x-api-key" };
+    const message = formatLlmFailure(failure);
+    expect(message).toContain("ANTHROPIC_API_KEY");
+    expect(message).toContain("401");
+    expect(message).toContain("invalid x-api-key");
+    assertOneActionableLine(message);
+  });
+
+  it("names rate limiting for a 429", () => {
+    const message = formatLlmFailure({ kind: "rate-limit", status: 429 });
+    expect(message).toContain("429");
+    expect(message.toLowerCase()).toContain("rate");
+    assertOneActionableLine(message);
+  });
+
+  it("names the network for a transport failure", () => {
+    const message = formatLlmFailure({ kind: "connection", detail: "Connection error." });
+    expect(message.toLowerCase()).toContain("network");
+    assertOneActionableLine(message);
+  });
+
+  it("includes the status and detail for a generic API failure", () => {
+    const message = formatLlmFailure({ kind: "api", status: 500, detail: "overloaded" });
+    expect(message).toContain("500");
+    expect(message).toContain("overloaded");
+    assertOneActionableLine(message);
+  });
+
+  it("still reads cleanly when a generic API failure has no status", () => {
+    const message = formatLlmFailure({ kind: "api", status: undefined, detail: "boom" });
+    expect(message).toContain("boom");
+    expect(message).not.toContain("undefined");
+    assertOneActionableLine(message);
   });
 });

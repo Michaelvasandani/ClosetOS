@@ -13,7 +13,8 @@
 
 import type { Command } from "commander";
 import { parseRequest } from "../core/constraints.js";
-import { createLlmClient } from "../core/llm.js";
+import type { LlmFailure } from "../core/llm.js";
+import { classifyLlmError, createLlmClient } from "../core/llm.js";
 import { OUTFIT_LABELS } from "../core/model.js";
 import type { Item, ItemId, Outfit, Recommendation } from "../core/model.js";
 import { recommend } from "../core/recommend.js";
@@ -63,6 +64,32 @@ export function formatRecommendation(
   return blocks.join("\n\n");
 }
 
+/**
+ * One short, actionable line for a classified LLM failure (issue 12) — the shell's
+ * answer to "code owns correctness, the shell owns presentation" (ADR-0002). Every
+ * branch stays single-line and free of the raw SDK stack the user would otherwise
+ * see; the most common first-run cause (an unset/typo'd key) gets a one-step fix.
+ */
+export function formatLlmFailure(failure: LlmFailure): string {
+  // Shared opener — every failure reads as the same "couldn't reach the model"
+  // problem, differing only in the cause and the one-step fix.
+  const prefix = "Couldn't reach the model —";
+  switch (failure.kind) {
+    case "missing-key":
+      return `${prefix} no ANTHROPIC_API_KEY set. Export your key and try again.`;
+    case "auth":
+      return `${prefix} check your ANTHROPIC_API_KEY (got ${failure.status} ${failure.detail}).`;
+    case "rate-limit":
+      return `${prefix} rate limited (${failure.status}). Wait a moment and try again.`;
+    case "connection":
+      return `${prefix} network error (${failure.detail}). Check your connection and try again.`;
+    case "api": {
+      const status = failure.status ? ` (${failure.status})` : "";
+      return `${prefix} request failed${status}: ${failure.detail}. Try again shortly.`;
+    }
+  }
+}
+
 /** Register `closet outfit` on `program`. */
 export function registerOutfitCommand(program: Command): void {
   program
@@ -75,13 +102,26 @@ export function registerOutfitCommand(program: Command): void {
       const request = parseRequest(raw);
       const items = store.loadItems();
 
-      const result = await recommend(
-        request,
-        items,
-        store.loadWears(),
-        store.loadLearnedPreferences(),
-        createLlmClient(),
-      );
+      let result: Awaited<ReturnType<typeof recommend>>;
+      try {
+        result = await recommend(
+          request,
+          items,
+          store.loadWears(),
+          store.loadLearnedPreferences(),
+          createLlmClient(),
+        );
+      } catch (error) {
+        // The core `recommend`/`llm` seam keeps throwing (ADR-0002); the shell
+        // decides how failure reads. A recognized API/transport error becomes one
+        // actionable line + a non-zero exit; anything else is a real bug and keeps
+        // its stack by re-throwing.
+        const failure = classifyLlmError(error, Boolean(process.env.ANTHROPIC_API_KEY));
+        if (failure === null) throw error;
+        console.error(formatLlmFailure(failure));
+        process.exitCode = 1;
+        return;
+      }
 
       if (!result.available) {
         // The recommender's reason is already a complete, user-facing sentence
