@@ -9,3 +9,4 @@
 
 export * from "./availability.js";
 export * from "./model.js";
+export * from "./store.js";
