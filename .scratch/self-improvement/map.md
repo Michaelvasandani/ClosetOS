@@ -46,6 +46,13 @@ off and build issue-by-issue.
   The **Wear** carries the back-link (`recommendation_id` + `chosen_label`); analyzer joins Wear→Rec for
   proposed-vs-chosen. Rejected-wholesale ("recommended, wore nothing") signal **deferred**. Downstream:
   model/store/CLI edits specified in the ticket. → `issues/02-persisted-recommendation-contract.md`
+- **03 — Structured `learned.yaml`:** one **uniform** rule record — `effect` (avoid|prefer) on `items`,
+  gated by a **free-text** `when` (no numeric predicate — v1 weather is free text), plus `id`/`kind`
+  (weather|comfort|style)/`unless_requested`/`note`/`evidence`/`source`; a freeform `notes:` list is the
+  escape hatch. Stays a **soft** signal — the recommender renders rules as directive lines (built here,
+  tolerant parser, `preferences.ts`), never hard-filters; the **eval gate** is the deterministic consumer
+  (a rule → a regression case). Three prose bullets **hand-migrated**. Downstream: analyzer writes this
+  shape (`source: learned`); eval-case generator. → `issues/03-structured-learned-yaml-schema.md`
 
 ## Not yet specified
 

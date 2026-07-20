@@ -30,6 +30,7 @@ import type {
   RecommendedOutfit,
   Wear,
 } from "./model.js";
+import { parseLearnedPreferences, renderLearnedPreferences } from "./preferences.js";
 
 /**
  * The reply to one outfit request. Either a full Recommendation, or a structured
@@ -173,10 +174,15 @@ function describeWears(wears: Wear[]): string {
   return `Recent wears (most recent first):\n${lines.join("\n")}`;
 }
 
-/** Render `learned.yaml` (untyped soft signals) as prompt context. */
+/**
+ * Render `learned.yaml` as prompt context. The store hands it back untyped; we
+ * parse it into the structured `LearnedPreferences` shape (issue 03) and render
+ * each rule as a directive line, so the model gets crisp soft guidance instead
+ * of a raw JSON dump. Parsing is tolerant — a malformed rule is dropped, never
+ * thrown, so an advisory file can't break the hot path.
+ */
 function describeLearned(learned: unknown): string {
-  if (learned === undefined || learned === null) return "Learned preferences: none.";
-  return `Learned preferences (soft signals):\n${JSON.stringify(learned, null, 2)}`;
+  return renderLearnedPreferences(parseLearnedPreferences(learned));
 }
 
 /** Assemble the full user turn: request, soft signals, then the candidate list. */

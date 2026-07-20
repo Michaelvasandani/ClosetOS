@@ -53,3 +53,5 @@ _Persistence note (not glossary): a Recommendation is persisted only when a cand
 **Learned preference**:
 A durable rule about the user's taste or comfort — derived from Wears — that the recommender reads as a *soft* signal, never a hard constraint (e.g. "avoid the grey knit polo above 78°F"). In v1 these are hand-maintained by the user; automated derivation via GitHub workflows is a deferred, additive step.
 _Avoid_: rule, setting, style rule
+
+_Schema note (not glossary): a learned preference is stored structured in `preferences/learned.yaml` as a uniform rule — an `effect` (`avoid`/`prefer`) on `items`, gated by a **free-text** `when` condition (v1 weather/occasion are free text, so no numeric thresholds), plus `id`/`kind`/`unless_requested`/`note`/`evidence`/`source`. A freeform `notes:` list is the escape hatch for anything not yet worth structuring. It stays a soft signal: the recommender renders rules as advisory directive lines (`src/core/preferences.ts`), never a hard filter; the deterministic consumer is the eval gate. Schema decision: `.scratch/self-improvement/issues/03-structured-learned-yaml-schema.md`._

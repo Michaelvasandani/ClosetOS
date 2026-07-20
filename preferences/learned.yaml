@@ -1,11 +1,43 @@
 # Hand-maintained soft preferences (Rung 0). The recommender reads these as
-# advisory signals only — never hard constraints. v1 does not write here
-# automatically; edit by hand as you learn what you actually like.
-weather:
-  - "Avoid the grey knit polo (grey-knit-polo-01) on hot days / above ~78F unless specifically requested — it runs warm."
-comfort:
-  - "White sneakers (white-sneakers-01) get uncomfortable on long-walking days; prefer them for shorter days."
-style:
-  preferred_office_bottoms:
-    - charcoal-trousers-01
-    - dark-jeans-01
+# advisory signals only — NEVER hard constraints (CONTEXT.md "Learned preference").
+# v1 does not write here automatically; edit by hand. The async learning loop
+# (deferred) will append machine-authored rules in this same shape via reviewed PRs.
+#
+# Each rule:
+#   id     stable handle (for provenance / dedup / eval-case links)
+#   kind   weather | comfort | style — which feedback signal it came from
+#   effect avoid | prefer — soft demote or soft boost for its items
+#   items  the item id(s) the effect applies to
+#   when   free-text condition, in the same vocabulary as the weather/occasion you
+#          type into `outfit` (there is no weather API in v1, so no numeric thresholds)
+#   unless_requested  (optional) waive the effect if you explicitly ask for the item
+#   note              (optional) human rationale
+#   evidence          (optional) Wear ids the rule was derived from
+#   source            manual | learned (default manual)
+#
+# `notes:` is a freeform escape hatch for anything not yet worth structuring.
+rules:
+  - id: avoid-grey-knit-polo-hot
+    kind: weather
+    effect: avoid
+    items: [grey-knit-polo-01]
+    when: "hot days — roughly above 78°F"
+    unless_requested: true
+    note: "Runs warm; low weather-fit on hot days."
+    source: manual
+  - id: avoid-white-sneakers-long-walk
+    kind: comfort
+    effect: avoid
+    items: [white-sneakers-01]
+    when: "long-walking days"
+    note: "Uncomfortable after long walking; fine for shorter days."
+    source: manual
+  - id: prefer-office-bottoms
+    kind: style
+    effect: prefer
+    items: [charcoal-trousers-01, dark-jeans-01]
+    when: "office occasions"
+    note: "Go-to office bottoms."
+    source: manual
+
+notes: []
