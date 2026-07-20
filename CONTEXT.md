@@ -43,10 +43,10 @@ The reply to one outfit request: the candidate Outfits (typically 1–3) generat
 _Avoid_: suggestion, proposal
 
 **Wear**:
-A dated event — on a given day, in given conditions (occasion, weather), the user wore a specific Outfit — carrying the ratings and feedback for that occasion. The same Outfit worn twice is two Wears. **The Wear is the unit the learning loop consumes.**
+A dated event — on a given day, in given conditions (occasion, weather), the user wore a specific Outfit — carrying the ratings and feedback for that occasion. The same Outfit worn twice is two Wears. When the Outfit was chosen from a Recommendation, the Wear links back to it (which Recommendation, and which label was chosen). **The Wear is the unit the learning loop consumes.**
 _Avoid_: outcome, outfit history entry, wear-event
 
-_Persistence note (not glossary): the first version stores only Wears. Persisting rejected Recommendations is deferred until the learning loop is built._
+_Persistence note (not glossary): a Recommendation is persisted only when a candidate from it is worn — written once, immutably, alongside the Wear (never at recommend-time), and reused if the same recommendation yields more than one Wear. Proposed-vs-chosen is reconstructed by joining a Wear back to its Recommendation. Persisting Recommendations that led to **no** Wear (rejected wholesale) is still deferred — an additive future step. Contract: `.scratch/self-improvement/issues/02-persisted-recommendation-contract.md`._
 
 ### Learning
 
