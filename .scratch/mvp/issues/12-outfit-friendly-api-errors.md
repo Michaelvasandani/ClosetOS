@@ -1,6 +1,6 @@
 # 12 — `outfit` should fail friendly on API/auth errors
 
-Status: needs-triage
+Status: Resolved
 Type: task
 Follow-up from: 11
 
