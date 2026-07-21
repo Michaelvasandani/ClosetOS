@@ -1,0 +1,42 @@
+# Deterministic regression case (self-improvement issue 04).
+# Kind: diversity — a statistical/quality threshold. Every labelled pick's
+# item-set overlap (Jaccard) with each recent Wear must stay at or below the
+# threshold, so the recommender doesn't hand back yesterday's outfit.
+#
+# This is a `recommendation`-target case: it asserts over a RECORDED pick supplied
+# inline (never a live LLM call — the gate stays deterministic). The recorded pick
+# below is genuinely diverse from the two recent Wears, so it passes. Once
+# persisted Recommendations (issue 02 build) can source this pick, the same case
+# becomes a live regression gate over the recommender's diversity behaviour.
+id: diversity-avoids-repeating-recent-wear
+kind: diversity
+description: No labelled pick overlaps a recent wear by more than 0.75 (Jaccard).
+target: recommendation
+request:
+  occasion: casual
+  weather: warm
+  notes: ""
+context:
+  items:
+    - { id: navy-tee-01, category: top }
+    - { id: khaki-chino-shorts-01, category: bottom }
+    - { id: white-sneakers-01, category: shoes }
+  wears:
+    - { date: 2026-07-18, items: [white-oxford-01, charcoal-trousers-01, brown-derby-01] }
+    - { date: 2026-07-19, items: [grey-knit-polo-01, dark-jeans-01, brown-derby-01] }
+  recommendation:
+    best:
+      outfit: { top: navy-tee-01, bottom: khaki-chino-shorts-01, shoes: white-sneakers-01 }
+      rationale: Light and summery, nothing repeated from the last two days.
+    comfort:
+      outfit: { top: navy-tee-01, bottom: khaki-chino-shorts-01, shoes: white-sneakers-01 }
+      rationale: Same easy pieces — comfortable for a warm casual day.
+    experimental:
+      outfit:
+        top: navy-tee-01
+        bottom: khaki-chino-shorts-01
+        shoes: white-sneakers-01
+        accessories: [black-field-watch-01]
+      rationale: Adds a watch for a bit of polish.
+expected:
+  diversity_max_overlap: 0.75

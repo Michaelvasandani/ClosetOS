@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import pkg from "../../package.json" with { type: "json" };
 import { registerAddCommand } from "./add.js";
+import { registerEvalCommand } from "./eval.js";
 import { registerLaundryCommands } from "./laundry.js";
 import { registerListCommand } from "./list.js";
 import { registerOutfitCommand } from "./outfit.js";
@@ -22,6 +23,7 @@ program
   .version(pkg.version);
 
 registerAddCommand(program);
+registerEvalCommand(program);
 registerLaundryCommands(program);
 registerListCommand(program);
 registerOutfitCommand(program);

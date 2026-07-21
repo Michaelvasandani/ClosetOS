@@ -9,6 +9,7 @@
 
 export * from "./availability.js";
 export * from "./constraints.js";
+export * from "./eval.js";
 export * from "./llm.js";
 export * from "./model.js";
 export * from "./preferences.js";

@@ -1,0 +1,23 @@
+# Deterministic regression case (self-improvement issue 04).
+# Kind: dress-code — a FEASIBILITY check over the candidate set: for an office
+# request, at least one assembled candidate must carry a business-casual item, so
+# the recommender always has a dress-appropriate outfit to pick. This is what the
+# deterministic gate can assert about dress code; whether the LLM's final *pick*
+# honours it is a `recommendation`-target check (deferred with the recorded-pick
+# source, issue 02 build).
+id: dress-code-office-feasible
+kind: dress-code
+description: An office request can always assemble a business-casual outfit.
+target: candidates
+request:
+  occasion: office
+  weather: cool
+  notes: ""
+context:
+  items:
+    - { id: white-oxford-01, category: top, formality: [business-casual, smart-casual] }
+    - { id: navy-tee-01, category: top, formality: [casual] }
+    - { id: charcoal-trousers-01, category: bottom, formality: [business-casual] }
+    - { id: brown-derby-01, category: shoes, formality: [business-casual] }
+expected:
+  candidate_with_formality: business-casual

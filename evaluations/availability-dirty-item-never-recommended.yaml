@@ -1,0 +1,24 @@
+# Deterministic regression case (self-improvement issue 04).
+# Kind: availability — the hardest, most load-bearing check. A dirty item is not
+# available (CONTEXT.md), so it must never enter a candidate outfit. This runs
+# against the real constraint layer (`assembleCandidates`) — no LLM — so a change
+# to availability/constraint logic that let a dirty item through flips it red.
+id: availability-dirty-item-never-recommended
+kind: availability
+description: A dirty top is never recommended; a clean top still is.
+target: candidates
+request:
+  occasion: casual coffee
+  weather: mild
+  notes: ""
+context:
+  # Only the axis under test is set; everything else defaults to available
+  # (clean · with-me · ok), so the case reads as exactly what it asserts.
+  items:
+    - { id: grey-knit-polo-01, category: top, cleanliness: dirty }
+    - { id: white-oxford-01, category: top }
+    - { id: dark-jeans-01, category: bottom }
+    - { id: white-sneakers-01, category: shoes }
+expected:
+  must_not_include: [grey-knit-polo-01]
+  must_be_recommendable: [white-oxford-01]

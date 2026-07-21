@@ -53,14 +53,25 @@ off and build issue-by-issue.
   tolerant parser, `preferences.ts`), never hard-filters; the **eval gate** is the deterministic consumer
   (a rule → a regression case). Three prose bullets **hand-migrated**. Downstream: analyzer writes this
   shape (`source: learned`); eval-case generator. → `issues/03-structured-learned-yaml-schema.md`
+- **04 — Eval-case format + deterministic harness:** case shape `context`→`request`→`expected`
+  (self-contained inline wardrobe), `id`/`kind`/`target`. One principle decides all: **the gate never
+  calls the LLM** (reproducible = trustworthy). Two targets — `candidates` (assert over the deterministic
+  `assembleCandidates`, no LLM — the load-bearing gate today) and `recommendation` (assert over a
+  *recorded* pick inline, covers diversity/quality; becomes a recommender gate once 02's persisted picks
+  feed it). Gate = **no-regression ratchet**: `gate(baseline, proposed)` blocks only a pass→fail flip vs
+  the merge-base; `skip` is first-class. **Strict** parser (opposite of `learned.yaml` — a dropped case
+  is a disabled check). Built here: `eval.ts` (parse/run/`gate`), `store.loadEvalCases`, `closet eval`
+  (+`--json` for CI), 4 prototype cases. Deferred: two-tree CI glue (01), persisted-pick source (02),
+  auto-generation (07). → `issues/04-eval-case-format-and-harness.md`
 
 ## Not yet specified
 
 <!-- in-scope fog; graduates into tickets as the frontier advances -->
 
 - **Auto-generate-eval-case-on-failure mechanism** — how a confirmed failure becomes a persisted
-  `evaluations/` case, who writes it, dedup. Graduates after the eval-case format (04) + analyzer (07).
-- **Seed / starter eval-case set** — the hand-written cases that exist before the loop runs. After 04.
+  `evaluations/` case, who writes it, dedup. Format now decided (04); still waits on the analyzer (07).
+- **Two-tree CI ratchet orchestration** — checkout merge-base, run `closet eval --json` on both trees,
+  diff via `gate()`. The pure `gate()` + `--json` ship (04); the git/CI glue waits on the runtime (01).
 - **Prompt-change "higher bar"** — what guards a prompt edit, and what `prompts/*.md` files even exist
   (the dir doesn't exist yet). After topology (06) / analyzer (07).
 - **Workflow cost / rate-limit guardrails** — part of runtime layer (c). After topology (06).

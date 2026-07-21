@@ -55,3 +55,11 @@ A durable rule about the user's taste or comfort — derived from Wears — that
 _Avoid_: rule, setting, style rule
 
 _Schema note (not glossary): a learned preference is stored structured in `preferences/learned.yaml` as a uniform rule — an `effect` (`avoid`/`prefer`) on `items`, gated by a **free-text** `when` condition (v1 weather/occasion are free text, so no numeric thresholds), plus `id`/`kind`/`unless_requested`/`note`/`evidence`/`source`. A freeform `notes:` list is the escape hatch for anything not yet worth structuring. It stays a soft signal: the recommender renders rules as advisory directive lines (`src/core/preferences.ts`), never a hard filter; the deterministic consumer is the eval gate. Schema decision: `.scratch/self-improvement/issues/03-structured-learned-yaml-schema.md`._
+
+### Evaluation
+
+**Eval case**:
+The unit of the deterministic regression gate — a checked-in assertion about the recommender's behaviour in one pinned situation, stored one-per-file at `evaluations/<id>.yaml`. Its shape is `context` (a self-contained inline wardrobe, plus optional recent Wears / a recorded Recommendation) → `request` (the outfit request posed) → `expected` (hard assertions the outcome must satisfy). A case's assertions run over one of two **targets**: `candidates` (the deterministic constraint layer, `assembleCandidates` — no LLM) or `recommendation` (a recorded pick). **The gate never calls the LLM** — a verdict must be reproducible to be trustworthy — so it is the honest, mechanical half of the evaluator, distinct from the fallible analyzer that only proposes.
+_Avoid_: test case, eval, check
+
+_Harness note (not glossary): the gate is a **no-regression ratchet** — a proposed change passes iff no case that currently passed (on the merge-base) starts failing. `src/core/eval.ts` owns the parse/run/`gate` logic (strict parsing — a malformed case throws, unlike the tolerant `learned.yaml`); `closet eval` runs the suite (`--json` for the CI ratchet). Contract: `.scratch/self-improvement/issues/04-eval-case-format-and-harness.md`._

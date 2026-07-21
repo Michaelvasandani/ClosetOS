@@ -17,8 +17,9 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { parse, stringify } from "yaml";
+import { type EvalCase, parseEvalCase } from "./eval.js";
 import {
   type Category,
   type IsoDate,
@@ -73,6 +74,14 @@ export interface Store {
    * hard-typed shape in v1). Returns `undefined` when the file is absent.
    */
   loadLearnedPreferences(): unknown;
+  /**
+   * Read and validate every `evaluations/*.yaml` regression case (issue 04).
+   * STRICT like the Item/Wear readers — a malformed case throws
+   * (MalformedEvalCaseError) rather than being dropped, because a silently
+   * skipped case is a silently disabled regression check. Returns [] when the
+   * directory is absent.
+   */
+  loadEvalCases(): EvalCase[];
 }
 
 // --- YAML formatting --------------------------------------------------------
@@ -271,6 +280,7 @@ export function createStore(root: string): Store {
   const wardrobeDir = join(root, "wardrobe");
   const wearsDir = join(root, "outfits", "wears");
   const learnedPath = join(root, "preferences", "learned.yaml");
+  const evaluationsDir = join(root, "evaluations");
 
   return {
     loadItems(): Item[] {
@@ -310,6 +320,14 @@ export function createStore(root: string): Store {
     loadLearnedPreferences(): unknown {
       if (!existsSync(learnedPath)) return undefined;
       return parseFile(learnedPath);
+    },
+
+    loadEvalCases(): EvalCase[] {
+      // The case's own `id` is the stable label in a verdict; the file path is
+      // used only for parse errors, so a bad case points the author at the file.
+      return yamlFilesUnder(evaluationsDir).map((path) =>
+        parseEvalCase(parseFile(path), relative(root, path)),
+      );
     },
   };
 }

@@ -1,0 +1,24 @@
+# Deterministic regression case (self-improvement issue 04).
+# Kind: constraint — the request's pins are hard: every candidate must contain a
+# `required` item and none may contain an `avoided` one. Runs against
+# `assembleCandidates`, no LLM.
+id: constraint-required-and-avoided-pins
+kind: constraint
+description: A required bottom appears in every candidate; an avoided shoe in none.
+target: candidates
+request:
+  occasion: office
+  weather: cool
+  notes: ""
+  required: [charcoal-trousers-01]
+  avoided: [white-sneakers-01]
+context:
+  items:
+    - { id: white-oxford-01, category: top }
+    - { id: charcoal-trousers-01, category: bottom }
+    - { id: dark-jeans-01, category: bottom }
+    - { id: brown-derby-01, category: shoes }
+    - { id: white-sneakers-01, category: shoes }
+expected:
+  required_present: [charcoal-trousers-01]
+  must_not_include: [white-sneakers-01]

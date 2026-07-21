@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { MalformedEvalCaseError } from "./eval.js";
 import type { Item, Wear } from "./model.js";
 import {
   MalformedFileError,
@@ -245,6 +246,46 @@ describe("store", () => {
       expect(store.loadLearnedPreferences()).toEqual({
         weather: ["avoid the grey polo when hot"],
       });
+    });
+  });
+
+  describe("loadEvalCases", () => {
+    const writeCase = (name: string, body: string): void => {
+      mkdirSync(join(root, "evaluations"), { recursive: true });
+      writeFileSync(join(root, "evaluations", name), body);
+    };
+
+    it("returns [] when the evaluations directory is absent", () => {
+      expect(store.loadEvalCases()).toEqual([]);
+    });
+
+    it("loads and validates every evaluations/*.yaml case", () => {
+      writeCase(
+        "dirty.yaml",
+        [
+          "id: dirty-never-recommended",
+          "kind: availability",
+          "description: a dirty item is never recommended",
+          "target: candidates",
+          "request: { occasion: office, weather: mild, notes: '' }",
+          "context:",
+          "  items:",
+          "    - { id: grey-knit-polo-01, category: top, cleanliness: dirty }",
+          "    - { id: white-oxford-01, category: top }",
+          "expected: { must_not_include: [grey-knit-polo-01] }",
+          "",
+        ].join("\n"),
+      );
+      const cases = store.loadEvalCases();
+      expect(cases).toHaveLength(1);
+      expect(cases[0]?.id).toBe("dirty-never-recommended");
+      expect(cases[0]?.expected.mustNotInclude).toEqual(["grey-knit-polo-01"]);
+    });
+
+    it("throws MalformedEvalCaseError on a bad case (never silently drops it)", () => {
+      // A load-bearing gate asset must fail loudly — a dropped case is a disabled check.
+      writeCase("bad.yaml", "id: bad\nkind: nonsense\ndescription: x\ntarget: candidates\n");
+      expect(() => store.loadEvalCases()).toThrow(MalformedEvalCaseError);
     });
   });
 });
